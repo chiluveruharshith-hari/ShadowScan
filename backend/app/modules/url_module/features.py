@@ -1,28 +1,31 @@
 from urllib.parse import urlparse
+import re
 
+SUSPICIOUS_KEYWORDS = [
+    "login", "verify", "bank", "account", "secure",
+    "update", "free", "offer", "win", "prize", "password"
+]
 
-SUSPICIOUS_KEYWORDS = ("login", "verify", "bank", "secure")
-
-
-def _extract_host(url: str) -> str:
-	parsed = urlparse(url)
-	if parsed.netloc:
-		return parsed.netloc.lower()
-	return parsed.path.split("/")[0].lower()
+SHORTENERS = ["bit.ly", "tinyurl.com", "t.co", "goo.gl"]
 
 
 def extract_url_features(url: str) -> dict:
-	lowered_url = url.lower()
-	host = _extract_host(url)
+    parsed = urlparse(url)
+    domain = parsed.netloc.lower()
 
-	matched_keywords = [
-		keyword for keyword in SUSPICIOUS_KEYWORDS if keyword in lowered_url
-	]
+    features = {}
 
-	return {
-		"url_length": len(url),
-		"has_at_symbol": "@" in url,
-		"suspicious_keywords": matched_keywords,
-		"suspicious_keyword_count": len(matched_keywords),
-		"dot_count": host.count("."),
-	}
+    features["url_length"] = len(url)
+    features["has_at_symbol"] = "@" in url
+    features["dot_count"] = url.count(".")
+    features["domain"] = domain
+
+    # keyword detection
+    found_keywords = [kw for kw in SUSPICIOUS_KEYWORDS if kw in url.lower()]
+    features["suspicious_keywords"] = found_keywords
+    features["suspicious_keyword_count"] = len(found_keywords)
+
+    # shortened URL detection
+    features["is_shortened"] = any(short in domain for short in SHORTENERS)
+
+    return features

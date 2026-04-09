@@ -1,59 +1,72 @@
 from typing import Dict, List, Optional
 
-
 SMS_RISK_TERMS = (
-	"urgent",
-	"click",
-	"verify",
-	"account",
-	"suspend",
-	"limited time",
-	"prize",
-	"password",
+    "urgent", "click", "verify", "account",
+    "suspend", "limited time", "prize",
+    "password", "bank", "login"
 )
+
+SHORTENERS = ["bit.ly", "tinyurl.com", "t.co", "goo.gl"]
 
 
 def compute_url_score(
-    features: Dict, google_flag: bool,
+    features: Dict,
+    google_flag: bool,
+    sms_text: Optional[str] = None
 ) -> Dict:
-    # Base score of 1 (Very Low Risk)
-    score_float = 1.0
+
+    score_float = 2.0  # increased base score
     reasons: List[str] = []
 
-    # Analysis
+    # 1. Long URL
     if features.get("url_length", 0) > 75:
         score_float += 1.5
-        reasons.append("URL length is unusually long (> 75 chars)")
+        reasons.append("URL length is unusually long")
 
+    # 2. @ symbol
     if features.get("has_at_symbol"):
         score_float += 2.5
-        reasons.append("URL contains '@' symbol (potential destination masking)")
+        reasons.append("Contains '@' symbol (masking attack)")
 
+    # 3. Phishing keywords in URL
     keyword_count = features.get("suspicious_keyword_count", 0)
     if keyword_count > 0:
-        keyword_weight = min(2.0, keyword_count * 0.8)
-        score_float += keyword_weight
-        reasons.append(
-            f"Phishing keywords detected: {', '.join(features.get('suspicious_keywords', []))}"
-        )
+        score_float += min(2.5, keyword_count * 0.8)
+        reasons.append(f"Phishing keywords in URL: {', '.join(features.get('suspicious_keywords', []))}")
 
+    # 4. Too many dots
     if features.get("dot_count", 0) >= 4:
         score_float += 1.5
-        reasons.append("Excessive subdomains detected (potential phishing pattern)")
+        reasons.append("Too many subdomains")
 
+    # 5. Shortened URL
+    if features.get("is_shortened"):
+        score_float += 3.0
+        reasons.append("Shortened URL detected")
+
+    # 6. SMS analysis (NEW 🔥)
+    if sms_text:
+        sms_lower = sms_text.lower()
+        matched_terms = [term for term in SMS_RISK_TERMS if term in sms_lower]
+
+        if matched_terms:
+            score_float += min(3.0, len(matched_terms) * 0.7)
+            reasons.append(f"Suspicious SMS keywords: {', '.join(matched_terms)}")
+
+    # 7. Google Safe Browsing
     if google_flag:
         score_float += 4.0
-        reasons.append("Google Safe Browsing / Threat-intel flagged this URL")
+        reasons.append("Threat detected by Google Safe Browsing")
 
-    # Convert to 1-10 integer
-    final_score = int(min(10, max(1, round(score_float))))
+    # FINAL SCORE
+    final_score = int(min(10, round(score_float)))
 
-    # Risk categorization
-    if final_score <= 4:
+    # Better thresholds
+    if final_score <= 3:
         risk = "LOW"
-    elif final_score <= 6:
+    elif final_score <= 5:
         risk = "MEDIUM"
-    elif final_score <= 8:
+    elif final_score <= 7:
         risk = "HIGH"
     else:
         risk = "CRITICAL"

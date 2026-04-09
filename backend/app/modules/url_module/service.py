@@ -13,8 +13,10 @@ def analyze_url_service(url: str, sms_text: Optional[str] = None) -> Dict:
     google_flag = threat_intel_response.get("has_threat", False)
     
     score_result = compute_url_score(
-        features=features, google_flag=google_flag
-    )
+    features=features,
+    google_flag=google_flag,
+    sms_text=sms_text   # 🔥 ADD THIS
+)
 
     return {
         "score": score_result["score"],
