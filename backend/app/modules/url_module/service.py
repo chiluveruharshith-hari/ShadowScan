@@ -32,3 +32,14 @@ def analyze_url_service(url: str, sms_text: Optional[str] = None) -> Dict:
         },
         "debug": threat_intel_response
     }
+# =========================
+# WRAPPER FOR FUSION
+# =========================
+
+def analyze_url(url: str, sms_text: str = None) -> dict:
+    result = analyze_url_service(url, sms_text)
+
+    return {
+        "score": result.get("score", 0.0),
+        "risk_level": result.get("risk", "UNKNOWN")
+    }

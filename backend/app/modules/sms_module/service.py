@@ -128,3 +128,22 @@ def final_sms_risk_analysis(text: str) -> dict:
         return {
             "error": str(e)
         }
+# =========================
+# WRAPPER FOR API (IMPORTANT)
+# =========================
+
+def analyze_sms(text: str) -> dict:
+    try:
+        result = final_sms_risk_analysis(text)
+
+        return {
+            "score": result.get("final_score", 0.0),
+            "risk_level": result.get("risk_level", "UNKNOWN")
+        }
+
+    except Exception as e:
+        return {
+            "score": 0.0,
+            "risk_level": "UNKNOWN",
+            "error": str(e)
+        }
