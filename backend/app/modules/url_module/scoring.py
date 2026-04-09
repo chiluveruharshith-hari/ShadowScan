@@ -14,56 +14,55 @@ SMS_RISK_TERMS = (
 
 
 def compute_url_score(
-	features: Dict, google_flag: bool, sms_text: Optional[str] = None
+    features: Dict, google_flag: bool,
 ) -> Dict:
-	score = 0.0
-	reasons: List[str] = []
+    # Base score of 1 (Very Low Risk)
+    score_float = 1.0
+    reasons: List[str] = []
 
-	if features.get("url_length", 0) > 75:
-		score += 0.15
-		reasons.append("URL is unusually long")
+    # Analysis
+    if features.get("url_length", 0) > 75:
+        score_float += 1.5
+        reasons.append("URL length is unusually long (> 75 chars)")
 
-	if features.get("has_at_symbol"):
-		score += 0.25
-		reasons.append("URL contains '@' which can hide real destination")
+    if features.get("has_at_symbol"):
+        score_float += 2.5
+        reasons.append("URL contains '@' symbol (potential destination masking)")
 
-	keyword_count = features.get("suspicious_keyword_count", 0)
-	if keyword_count > 0:
-		keyword_weight = min(0.2, keyword_count * 0.08)
-		score += keyword_weight
-		reasons.append(
-			f"Suspicious URL keywords detected: {', '.join(features.get('suspicious_keywords', []))}"
-		)
+    keyword_count = features.get("suspicious_keyword_count", 0)
+    if keyword_count > 0:
+        keyword_weight = min(2.0, keyword_count * 0.8)
+        score_float += keyword_weight
+        reasons.append(
+            f"Phishing keywords detected: {', '.join(features.get('suspicious_keywords', []))}"
+        )
 
-	if features.get("dot_count", 0) >= 4:
-		score += 0.15
-		reasons.append("URL has many subdomains")
+    if features.get("dot_count", 0) >= 4:
+        score_float += 1.5
+        reasons.append("Excessive subdomains detected (potential phishing pattern)")
 
-	if google_flag:
-		score += 0.25
-		reasons.append("Threat-intel rules flagged this URL")
+    if google_flag:
+        score_float += 4.0
+        reasons.append("Google Safe Browsing / Threat-intel flagged this URL")
 
-	if sms_text:
-		lowered_sms = sms_text.lower()
-		sms_hits = [term for term in SMS_RISK_TERMS if term in lowered_sms]
-		if sms_hits:
-			score += 0.10
-			reasons.append("SMS context contains urgency/phishing language")
+    # Convert to 1-10 integer
+    final_score = int(min(10, max(1, round(score_float))))
 
-	score = min(1.0, round(score, 3))
+    # Risk categorization
+    if final_score <= 4:
+        risk = "LOW"
+    elif final_score <= 6:
+        risk = "MEDIUM"
+    elif final_score <= 8:
+        risk = "HIGH"
+    else:
+        risk = "CRITICAL"
 
-	if score < 0.5:
-		risk = "LOW"
-	elif score <= 0.8:
-		risk = "MEDIUM"
-	else:
-		risk = "HIGH"
+    if not reasons:
+        reasons.append("No suspicious indicators detected")
 
-	if not reasons:
-		reasons.append("No major phishing indicators detected")
-
-	return {
-		"score": score,
-		"risk": risk,
-		"reasons": reasons,
-	}
+    return {
+        "score": final_score,
+        "risk": risk,
+        "reasons": reasons,
+    }

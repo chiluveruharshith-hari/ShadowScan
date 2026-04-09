@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 
 from fastapi import APIRouter
 from pydantic import BaseModel
@@ -15,13 +15,14 @@ class URLAnalysisRequest(BaseModel):
 
 
 class URLAnalysisResponse(BaseModel):
-	score: float
-	risk: str
-	reasons: List[str]
-	source: str
+    score: float
+    risk: str
+    reasons: List[str]
+    source: str
+    debug: Optional[Dict[str, Any]] = None
 
 
 @router.post("/analyze/url", response_model=URLAnalysisResponse)
 def analyze_url(payload: URLAnalysisRequest) -> URLAnalysisResponse:
-	result = analyze_url_service(url=payload.url, sms_text=payload.sms_text)
-	return URLAnalysisResponse(**result)
+    result = analyze_url_service(url=payload.url, sms_text=payload.sms_text)
+    return URLAnalysisResponse(**result)
