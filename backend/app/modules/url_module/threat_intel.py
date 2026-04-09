@@ -1,7 +1,12 @@
 import os
 import requests
 from typing import Dict, Any, Union
+from dotenv import load_dotenv
 
+load_dotenv()
+
+API_KEY = os.getenv("GOOGLE_API_KEY")
+print("API KEY:", API_KEY)  # should NOT be None
 import os
 print("API KEY:", os.getenv("GOOGLE_API_KEY"))
 def check_url_safety(url: str) -> Dict[str, Any]:

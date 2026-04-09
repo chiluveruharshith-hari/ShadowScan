@@ -7,21 +7,28 @@ from .threat_intel import check_url_safety
 
 def analyze_url_service(url: str, sms_text: Optional[str] = None) -> Dict:
     features = extract_url_features(url)
+
+    # Full Google Safe Browsing response
     threat_intel_response = check_url_safety(url)
-    
-    # Handle the new dictionary response from threat_intel.py
-    google_flag = threat_intel_response.get("has_threat", False)
-    
+
+    # Pass FULL response instead of boolean flag
     score_result = compute_url_score(
-    features=features,
-    google_flag=google_flag,
-    sms_text=sms_text   # 🔥 ADD THIS
-)
+        features=features,
+        google_data=threat_intel_response,
+        sms_text=sms_text
+    )
+
+    # Extract quick summary for output (optional but useful)
+    google_matches = threat_intel_response.get("matches", []) if threat_intel_response else []
 
     return {
         "score": score_result["score"],
         "risk": score_result["risk"],
         "reasons": score_result["reasons"],
         "source": "url",
-        "debug": threat_intel_response  # Adding debug info to the service result
+        "google_summary": {
+            "has_threat": bool(google_matches),
+            "threat_count": len(google_matches)
+        },
+        "debug": threat_intel_response
     }

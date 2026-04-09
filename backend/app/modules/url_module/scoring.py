@@ -11,11 +11,11 @@ SHORTENERS = ["bit.ly", "tinyurl.com", "t.co", "goo.gl"]
 
 def compute_url_score(
     features: Dict,
-    google_flag: bool,
+    google_data: Optional[Dict],
     sms_text: Optional[str] = None
 ) -> Dict:
 
-    score_float = 2.0  # increased base score
+    score_float = 2.0
     reasons: List[str] = []
 
     # 1. Long URL
@@ -32,7 +32,9 @@ def compute_url_score(
     keyword_count = features.get("suspicious_keyword_count", 0)
     if keyword_count > 0:
         score_float += min(2.5, keyword_count * 0.8)
-        reasons.append(f"Phishing keywords in URL: {', '.join(features.get('suspicious_keywords', []))}")
+        reasons.append(
+            f"Phishing keywords in URL: {', '.join(features.get('suspicious_keywords', []))}"
+        )
 
     # 4. Too many dots
     if features.get("dot_count", 0) >= 4:
@@ -44,24 +46,49 @@ def compute_url_score(
         score_float += 3.0
         reasons.append("Shortened URL detected")
 
-    # 6. SMS analysis (NEW 🔥)
+    # 6. SMS analysis
     if sms_text:
         sms_lower = sms_text.lower()
         matched_terms = [term for term in SMS_RISK_TERMS if term in sms_lower]
 
         if matched_terms:
             score_float += min(3.0, len(matched_terms) * 0.7)
-            reasons.append(f"Suspicious SMS keywords: {', '.join(matched_terms)}")
+            reasons.append(
+                f"Suspicious SMS keywords: {', '.join(matched_terms)}"
+            )
 
-    # 7. Google Safe Browsing
-    if google_flag:
-        score_float += 4.0
-        reasons.append("Threat detected by Google Safe Browsing")
+    # 7. Google Safe Browsing (STRUCTURED)
+    google_matches = google_data.get("matches", []) if google_data else []
+
+    if google_matches:
+        threat_types = list(set(
+            match.get("threatType", "") for match in google_matches
+        ))
+
+        for threat in threat_types:
+            if threat == "MALWARE":
+                score_float += 5.0
+                reasons.append("Google: Malware detected")
+
+            elif threat == "SOCIAL_ENGINEERING":
+                score_float += 4.5
+                reasons.append("Google: Phishing detected")
+
+            elif threat == "UNWANTED_SOFTWARE":
+                score_float += 3.5
+                reasons.append("Google: Unwanted software detected")
+
+            else:
+                score_float += 3.0
+                reasons.append(f"Google: {threat}")
+
+        # Ensure Google dominates scoring
+        score_float = max(score_float, 7.0)
 
     # FINAL SCORE
     final_score = int(min(10, round(score_float)))
 
-    # Better thresholds
+    # Thresholds
     if final_score <= 3:
         risk = "LOW"
     elif final_score <= 5:
