@@ -1,6 +1,10 @@
 import pickle
 import re
 from pathlib import Path
+import re
+from app.modules.url_module.service import analyze_url  # adjust import if needed
+
+URL_REGEX = r'(https?://[^\s]+)'
 
 # =========================
 # MODEL LOADING
@@ -132,13 +136,45 @@ def final_sms_risk_analysis(text: str) -> dict:
 # WRAPPER FOR API (IMPORTANT)
 # =========================
 
+def extract_urls(text: str):
+    return re.findall(URL_REGEX, text)
+
+
 def analyze_sms(text: str) -> dict:
     try:
+        # 1. Existing SMS analysis (unchanged)
         result = final_sms_risk_analysis(text)
 
+        sms_score = result.get("final_score", 0.0)
+        sms_risk = result.get("risk_level", "UNKNOWN")
+
+        # 2. Extract URLs from message
+        urls = extract_urls(text)
+
+        # 3. Send URLs to URL module
+        url_results = []
+        for url in urls:
+            url_result = analyze_url(url)
+            url_results.append({
+                "url": url,
+                "score": url_result.get("score", 0.0),
+                "risk": url_result.get("risk", "UNKNOWN")
+            })
+
+        # 4. Fusion logic (simple but effective)
+        max_url_score = max([u["score"] for u in url_results], default=0.0)
+        final_score = max(sms_score, max_url_score)
+
+        # Optional: derive final risk level
+        final_risk = sms_risk
+        if max_url_score > sms_score:
+            final_risk = "HIGH" if max_url_score >= 7 else "MEDIUM"
+
         return {
-            "score": result.get("final_score", 0.0),
-            "risk_level": result.get("risk_level", "UNKNOWN")
+            "score": final_score,
+            "risk_level": final_risk,
+            "sms_score": sms_score,
+            "urls": url_results
         }
 
     except Exception as e:
