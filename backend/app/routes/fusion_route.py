@@ -19,15 +19,15 @@ def analyze_all(data: dict):
 
     if url:
         url_result = analyze_url(url)
-        url_score = url_result["score"]
+        url_score = url_result.get("score")
 
     if sms:
         sms_result = analyze_sms(sms)
-        sms_score = sms_result["score"]
+        sms_score = sms_result.get("score")
 
     if phone:
         phone_result = analyze_phone(phone)
-        phone_score = phone_result["score"]
+        phone_score = phone_result.get("risk_score")  # ✅ FIXED
 
     final = calculate_final_score(url_score, sms_score, phone_score)
 

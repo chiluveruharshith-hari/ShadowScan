@@ -13,10 +13,10 @@ def analyze_url_service(url: str, sms_text: Optional[str] = None) -> Dict:
 
     # Pass FULL response instead of boolean flag
     score_result = compute_url_score(
-        features=features,
-        google_data=threat_intel_response,
-        sms_text=sms_text
-    )
+    features=features,
+    google_data=threat_intel_response.get("raw_response", {}),
+    sms_text=sms_text
+ )
 
     # Extract quick summary for output (optional but useful)
     google_matches = threat_intel_response.get("matches", []) if threat_intel_response else []
