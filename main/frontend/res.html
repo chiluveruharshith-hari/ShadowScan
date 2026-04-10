@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SHADOWSCAN | Threat Analysis Report</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container-highest": "#25252d",
+                    "secondary-fixed-dim": "#ffafa9",
+                    "on-tertiary": "#645000",
+                    "inverse-primary": "#006e2f",
+                    "inverse-surface": "#fcf8ff",
+                    "secondary-dim": "#ff716a",
+                    "primary": "#6bff8f",
+                    "primary-container": "#0abc56",
+                    "on-primary": "#005f28",
+                    "on-error-container": "#ffd2c8",
+                    "secondary-container": "#a80619",
+                    "on-primary-fixed-variant": "#006a2d",
+                    "tertiary-container": "#fed01b",
+                    "surface-bright": "#2c2b33",
+                    "on-surface": "#f9f5fd",
+                    "on-secondary-fixed": "#70000c",
+                    "on-background": "#f9f5fd",
+                    "outline-variant": "#48474d",
+                    "outline": "#76747b",
+                    "secondary": "#ff716a",
+                    "on-error": "#450900",
+                    "error-dim": "#d53d18",
+                    "surface": "#0e0e13",
+                    "on-secondary": "#490005",
+                    "surface-container-low": "#131319",
+                    "on-primary-fixed": "#004a1d",
+                    "inverse-on-surface": "#55545b",
+                    "surface-container-high": "#1f1f26",
+                    "tertiary": "#ffe083",
+                    "secondary-fixed": "#ffc3be",
+                    "primary-fixed-dim": "#5bf083",
+                    "surface-variant": "#25252d",
+                    "surface-dim": "#0e0e13",
+                    "tertiary-fixed": "#fed01b",
+                    "surface-container-lowest": "#000000",
+                    "on-primary-container": "#002c0f",
+                    "background": "#0e0e13",
+                    "on-secondary-container": "#ffdbd8",
+                    "surface-tint": "#6bff8f",
+                    "on-secondary-fixed-variant": "#a50318",
+                    "error": "#ff7351",
+                    "primary-fixed": "#6bff8f",
+                    "on-surface-variant": "#acaab1",
+                    "primary-dim": "#5bf083",
+                    "surface-container": "#19191f",
+                    "on-tertiary-fixed-variant": "#645000",
+                    "tertiary-dim": "#eec200",
+                    "on-tertiary-container": "#594700",
+                    "on-tertiary-fixed": "#433500",
+                    "tertiary-fixed-dim": "#eec200",
+                    "error-container": "#b92902"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Space Grotesk"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>body {
+    background-color: #0e0e13;
+    background-image: radial-gradient(at 0% 0%, rgba(107, 255, 143, 0.05) 0, transparent 50%), radial-gradient(at 100% 100%, rgba(255, 113, 106, 0.05) 0, transparent 50%);
+    position: relative
+    }
+body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuApwAITWRBs_6t6cs-rIkiIkXpFO_b8zQBsNnuZUVY2zz1KLyMwHiBtpSLt8CYBj_K0gk4IhQATS50ABBW_NkC_AdBT5gOmoeqHdm1YxLrFZjs9_rPpbIrl61Ff8gK5Jcz3ENaLlbBvblPit7v-NfFw0FSO-C-gYIHsD7JYr36Nc32yvQtQZ45sI1O2JEqoKtzVhHBpDBB98gRa3UsEdM32UnLsm5Gn7PWA8TBPr4zA0EIsjpcr9tUt4k3JyKzZiq7ivdyiFl7mASSY);
+    opacity: 0.03;
+    z-index: 0
+    }
+.glass-panel {
+    background: rgba(25, 25, 31, 0.4);
+    backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.05)
+    }
+.scan-line {
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #6bff8f, transparent);
+    filter: blur(2px);
+    width: 100%;
+    position: absolute;
+    z-index: 10
+    }
+.glow-text {
+    text-shadow: 0 0 12px rgba(107, 255, 143, 0.4)
+    }
+.glow-text-critical {
+    text-shadow: 0 0 12px rgba(255, 113, 106, 0.4)
+    }
+.material-symbols-outlined {
+    font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24
+    }</style>
+</head>
+<body class="font-body text-on-surface antialiased overflow-x-hidden">
+<!-- Top Navigation Anchor -->
+<main class="min-h-screen pt-32 pb-24 px-4 flex flex-col items-center justify-center">
+<!-- Background Grid Decoration -->
+<div class="absolute inset-0 z-[-1] opacity-10" style="background-image: radial-gradient(circle at 1px 1px, #76747b 1px, transparent 0); background-size: 40px 40px;"></div>
+<!-- Main Results Container -->
+<div class="w-full max-w-4xl relative">
+<!-- Glass Card: Title & Badge -->
+<div class="glass-panel p-8 md:p-12 relative overflow-hidden rounded-xl">
+<!-- Branding Accents -->
+<div class="absolute top-0 left-0 w-1 h-full bg-secondary"></div>
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12">
+<div>
+<h1 class="font-headline text-4xl md:text-5xl font-bold tracking-tighter text-on-surface mb-2 uppercase">Threat Analysis Report</h1>
+<p id="scan-status" class="font-label text-sm text-outline tracking-widest uppercase">Deep scan completed. Analyzing results...</p>
+</div>
+<div class="flex items-center gap-4">
+<div id="risk-badge" class="px-4 py-2 bg-secondary-container/20 border border-secondary/30 rounded-sm">
+<span class="flex items-center gap-2 font-headline font-black tracking-widest text-lg uppercase" id="risk-badge-text">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">hourglass_top</span>
+                                CALCULATING...
+                            </span>
+</div>
+</div>
+</div>
+<!-- Content Grid -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12">
+<!-- Average Risk Hero -->
+<div class="md:col-span-5 flex flex-col items-center justify-center bg-surface-container-lowest/50 rounded-lg p-10 border border-white/5 relative group">
+<div class="absolute inset-0 bg-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+<span class="font-label text-xs tracking-[0.2em] text-outline uppercase mb-4">AGGREGATE THREAT SCORE</span>
+<div class="relative">
+<svg class="w-48 h-48 transform -rotate-90">
+<circle class="text-surface-container-highest" cx="96" cy="96" fill="transparent" r="88" stroke="currentColor" stroke-width="4"></circle>
+<circle class="text-secondary glow-text-critical" cx="96" cy="96" fill="transparent" r="88" stroke="currentColor" stroke-dasharray="552.92" stroke-dashoffset="71.88" stroke-width="8"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span id="agg-pct" class="font-headline text-7xl font-black text-secondary glow-text-critical">0%</span>
+<span id="agg-severity" class="font-label text-[10px] text-outline uppercase tracking-widest">CALCULATING</span>
+</div>
+</div>
+</div>
+<!-- Individual Scores -->
+<div class="md:col-span-7 space-y-8">
+<div class="space-y-6">
+<!-- SMS Risk -->
+<div class="space-y-3">
+<div class="flex justify-between items-end">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 flex items-center justify-center bg-surface-container-highest rounded-sm border border-white/5">
+<span class="material-symbols-outlined text-secondary">sms</span>
+</div>
+<div>
+<h4 class="font-headline font-bold text-sm tracking-tight text-on-surface uppercase">SMS VECTOR ANALYSIS</h4>
+<p class="font-body text-[11px] text-outline">Smishing &amp; alphanumeric pattern matches detected.</p>
+</div>
+</div>
+<span id="sms-pct" class="font-headline font-black text-secondary text-xl">—</span>
+</div>
+<div class="h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden">
+<div id="sms-bar" class="h-full bg-secondary w-[0%] shadow-[0_0_8px_rgba(255,113,106,0.5)] transition-all duration-1000"></div>
+</div>
+</div>
+<!-- Call Risk -->
+<div class="space-y-3">
+<div class="flex justify-between items-end">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 flex items-center justify-center bg-surface-container-highest rounded-sm border border-white/5">
+<span class="material-symbols-outlined text-tertiary">call</span>
+</div>
+<div>
+<h4 class="font-headline font-bold text-sm tracking-tight text-on-surface uppercase">VOIP/CALL INTEGRITY</h4>
+<p class="font-body text-[11px] text-outline">Metadata spoofing and high-frequency pinging identified.</p>
+</div>
+</div>
+<span id="call-pct" class="font-headline font-black text-tertiary text-xl">—</span>
+</div>
+<div class="h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden">
+<div id="call-bar" class="h-full bg-tertiary w-[0%] shadow-[0_0_8px_rgba(254,208,27,0.5)] transition-all duration-1000"></div>
+</div>
+</div>
+<!-- URL Risk -->
+<div class="space-y-3">
+<div class="flex justify-between items-end">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 flex items-center justify-center bg-surface-container-highest rounded-sm border border-white/5">
+<span class="material-symbols-outlined text-secondary">language</span>
+</div>
+<div>
+<h4 class="font-headline font-bold text-sm tracking-tight text-on-surface uppercase">URL DOMAIN REPUTATION</h4>
+<p class="font-body text-[11px] text-outline">Known malicious redirect chains and homograph attacks.</p>
+</div>
+</div>
+<span id="url-pct" class="font-headline font-black text-secondary text-xl">—</span>
+</div>
+<div class="h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden">
+<div id="url-bar" class="h-full bg-secondary w-[0%] shadow-[0_0_8px_rgba(255,113,106,0.5)] transition-all duration-1000"></div>
+</div>
+</div>
+</div>
+<!-- CTA Button -->
+<div class="pt-4">
+<a class="group flex items-center justify-center gap-3 w-full py-4 bg-surface-container-high hover:bg-surface-container-highest border border-white/5 transition-all duration-300" href="land.html">
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors">arrow_back</span>
+<span class="font-headline font-bold text-xs uppercase tracking-[0.2em] text-on-surface">New Analysis</span>
+</a>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer Details -->
+</div>
+</main>
+<!-- Footer Component Anchor -->
+<footer class="w-full py-12 border-t border-white/5 bg-[#0e0e13]">
+<div class="flex flex-col items-center gap-6 w-full px-8 max-w-[1440px] mx-auto">
+<div class="text-slate-200 font-black font-headline text-xl uppercase tracking-tighter">SHADOWSCAN TACTICAL</div>
+<div class="flex flex-wrap justify-center gap-8 font-label text-[10px] uppercase tracking-[0.2em] text-slate-600">
+<a class="hover:text-green-400 transition-colors" href="#">Privacy Protocol</a>
+<a class="hover:text-green-400 transition-colors" href="#">Terms of Engagement</a>
+<a class="hover:text-green-400 transition-colors" href="#">API Documentation</a>
+</div>
+<p class="font-label text-[10px] uppercase tracking-[0.2em] text-slate-700">© 2024 SHADOWSCAN TACTICAL. ALL RIGHTS RESERVED.</p>
+</div>
+</footer>
+<!-- Decorative Scanner Noise / Texture -->
+<div class="fixed inset-0 pointer-events-none z-[100] mix-blend-overlay opacity-20 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')]"></div>
+<script src="res.js"></script>
+</body></html>
